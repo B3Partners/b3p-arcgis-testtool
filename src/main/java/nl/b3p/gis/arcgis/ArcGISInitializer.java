@@ -2,9 +2,9 @@ package nl.b3p.gis.arcgis;
 
 import com.esri.arcgis.system.AoInitialize;
 import com.esri.arcgis.system.EngineInitializer;
-import com.esri.arcgis.system.esriLicenseProductCode;
 import com.esri.arcgis.system.esriLicenseStatus;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -77,48 +77,45 @@ public class ArcGISInitializer {
     private static void initializeArcGISLicenses() throws Exception {
         System.out.println("Searching ArcGIS license...");
         
-        // these belong to arcgis 10.0.0 (arcobjects lin included)
-//        if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeArcEditor)
-//                == esriLicenseStatus.esriLicenseAvailable) {
-//            System.out.println("ArcGIS License used: ArcEditor");
-//            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeArcEditor);
-//        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeArcView)
-//                == esriLicenseStatus.esriLicenseAvailable) {
-//            System.out.println("ArcGIS License used: ArcView");
-//            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeArcView);
-//        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeArcInfo)
-//                == esriLicenseStatus.esriLicenseAvailable) {
-//            System.out.println("ArcGIS License used: ArcInfo");
-//            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeArcInfo);
-        
-        // these belong to 10.3.1 (arcobjects lin included)
-        if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeBasic)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: Basic");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeBasic);
-        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeStandard)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: Standard");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeStandard);
-        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeAdvanced)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: Advanced");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeAdvanced);
+        // these belong to arcgis 10.0.0 (arcobjects included)
+        if (hasLicense("esriLicenseProductCodeArcEditor")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeArcView")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeArcInfo")) {
+            return;
             
-        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeEngine)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: Engine");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeEngine);
-        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeEngineGeoDB)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: EngineGeoDB");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeEngineGeoDB);
-        } else if (aoInit.isProductCodeAvailable(esriLicenseProductCode.esriLicenseProductCodeArcServer)
-                == esriLicenseStatus.esriLicenseAvailable) {
-            System.out.println("ArcGIS License used: ArcServer");
-            aoInit.initialize(esriLicenseProductCode.esriLicenseProductCodeArcServer);            
-        } else {
-            throw new Exception("Could not initialize any ESRI license.");
+        // these belong to 10.3.1 (arcobjects included)            
+        } else if (hasLicense("esriLicenseProductCodeBasic")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeStandard")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeAdvanced")) {
+            return;
+            
+        // these are general     
+        } else if (hasLicense("esriLicenseProductCodeEngine")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeEngineGeoDB")) {
+            return;
+        } else if (hasLicense("esriLicenseProductCodeArcServer")) {
+            return;
         }
+            
+        throw new Exception("Could not initialize any ESRI license.");
+    }
+    
+    private static boolean hasLicense(String l) throws ClassNotFoundException {
+        Class c = Class.forName("com.esri.arcgis.system.esriLicenseProductCode");
+//        System.out.println("Trying ArcGIS License: " + l);
+        try {
+            Field f = c.getDeclaredField(l);
+            if (aoInit.isProductCodeAvailable(f.getInt(null)) == esriLicenseStatus.esriLicenseAvailable) {
+                System.out.println("ArcGIS License used: " + l);
+                aoInit.initialize(f.getInt(null));
+                return true;
+            }
+        } catch (Exception ex) {}
+        return false;
     }
 }
