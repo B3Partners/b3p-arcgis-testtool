@@ -105,17 +105,19 @@ public class ArcGISInitializer {
         throw new Exception("Could not initialize any ESRI license.");
     }
     
-    private static boolean hasLicense(String l) throws ClassNotFoundException {
+    private static boolean hasLicense(String licCode) throws ClassNotFoundException {
         Class c = Class.forName("com.esri.arcgis.system.esriLicenseProductCode");
-//        System.out.println("Trying ArcGIS License: " + l);
+        System.out.println("Trying ArcGIS License: " + licCode);
         try {
-            Field f = c.getDeclaredField(l);
+            Field f = c.getDeclaredField(licCode);
             if (aoInit.isProductCodeAvailable(f.getInt(null)) == esriLicenseStatus.esriLicenseAvailable) {
-                System.out.println("ArcGIS License used: " + l);
+                System.out.println("ArcGIS License used: " + licCode);
                 aoInit.initialize(f.getInt(null));
                 return true;
             }
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         return false;
     }
 }
